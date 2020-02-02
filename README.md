@@ -1,6 +1,6 @@
-# ETL Pipeline and Postgres Star Database Schema
+# ETL Pipeline and Postgres Data Modelling
 
-Current project shows an steps to analyze the data for a hypothetical startup collecting songs and user activity from the new music streaming app they have created. 
+Current project shows steps for analyzing the data for a hypothetical startup collecting songs and user activity from the new music streaming app they have created. 
 
 Given this hypothetical startup, their analytics team is particularly interested in understanding what songs users are listening to. 
 Currently, they don't have an easy way to query their data, which resides in a directory of JSON logs on user activity on the app, as well as a directory with JSON metadata on the songs in their app.
@@ -47,6 +47,7 @@ log_data/2018/11/2018-11-13-events.json
 # Schema for Song Play Analysis
 Using the song and log datasets, you'll need to create a star schema optimized for queries on song play analysis. This includes the following tables.
 
+# Star Database Schema
 ## Fact Tables
 **songplays** - records in log data associated with song plays i.e. records with page NextSong
 - songplay_id (INT) PRIMARY KEY: ID of each user song play 
