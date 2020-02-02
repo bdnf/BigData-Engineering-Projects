@@ -58,7 +58,7 @@ Using the song and log datasets, you'll need to create a star schema optimized f
 - artist_id (TEXT) NOT NULL: ID of Artist of the song played
 - session_id (INT): ID of the user Session 
 - location (TEXT): User location 
-- user_agent (TEXT): Agent used by user to access Sparkify platform
+- user_agent (TEXT): Agent used by user to access the platform
 
 ## Dimension Tables
 **users** - users in the app
