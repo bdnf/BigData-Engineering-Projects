@@ -1,4 +1,5 @@
 import os
+import time
 import pandas as pd
 import boto3
 import json
@@ -6,6 +7,9 @@ import psycopg2
 
 import configparser
 
+# time to wait to extract endpoint from the Redshift cluster after creation
+WAITING_TIME = 0
+MAX_WAITING_TIME = 300 # 5 minutes
 
 def create_iam_role(iam, DWH_IAM_ROLE_NAME):
     '''
@@ -67,11 +71,13 @@ def create_cluster(redshift, roleArn, DWH_CLUSTER_TYPE, DWH_NODE_TYPE, DWH_NUM_N
 
 
 def get_cluster_props(redshift, DWH_CLUSTER_IDENTIFIER):
+    global  WAITING_TIME, MAX_WAITING_TIME
     '''
     Retrieve metadata of Redshift cluster
     '''
 
     def prettyRedshiftProps(props):
+        print("Props are: ", props )
         pd.set_option('display.max_colwidth', None)
         keysToShow = ["ClusterIdentifier", "NodeType", "ClusterStatus", "MasterUsername", "DBName", "Endpoint", "NumberOfNodes", 'VpcId']
         x = [(k, v) for k,v in props.items() if k in keysToShow]
@@ -82,10 +88,24 @@ def get_cluster_props(redshift, DWH_CLUSTER_IDENTIFIER):
 
     print("Cluster props are: \n", props)
 
-    endpoint = myClusterProps['Endpoint']['Address']
-    roleArn = myClusterProps['IamRoles'][0]['IamRoleArn']
-    print("DWH_ENDPOINT :: ", endpoint)
-    print("DWH_ROLE_ARN :: ", roleArn)
+    roleArn = ""
+    endpoint = myClusterProps.get('Endpoint', None)
+    if endpoint is not None:
+         endpoint = endpoint.get('Address', None)
+    else:
+        # cluster is not ready yet, let's wait a bit
+        seconds = 10
+        time.sleep(seconds)
+        WAITING_TIME += 10
+        print("Cluster is not yet ready, let check again if endpoint is accessible (Time passed: %s seconds) " % WAITING_TIME)
+        if WAITING_TIME < MAX_WAITING_TIME:
+            get_cluster_props(redshift, DWH_CLUSTER_IDENTIFIER)
+        else:
+            roleArn = myClusterProps['IamRoles'][0]['IamRoleArn']
+            print("DWH_ENDPOINT :: ", endpoint)
+            print("DWH_ROLE_ARN :: ", roleArn)
+        endpoint = endpoint.get('Address', None)
+
     return myClusterProps, endpoint, roleArn
 
 
@@ -107,6 +127,14 @@ def open_ports(ec2, myClusterProps, DWH_PORT, cidr_range):
         )
     except Exception as e:
         print(e)
+
+def delete_cluster(redshift, iam, DWH_CLUSTER_IDENTIFIER, DWH_IAM_ROLE_NAME):
+    """
+        [Optional] Cleanup and Cluster delete, WITHOUT! creating snapshot
+    """
+    iam.detach_role_policy(RoleName=DWH_IAM_ROLE_NAME, PolicyArn="arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess")
+    iam.delete_role(RoleName=DWH_IAM_ROLE_NAME)
+    redshift.delete_cluster(ClusterIdentifier=DWH_CLUSTER_IDENTIFIER,  SkipFinalClusterSnapshot=True)
 
 
 def main():
@@ -163,7 +191,17 @@ def main():
 
     create_cluster(redshift, roleArn, DWH_CLUSTER_TYPE, DWH_NODE_TYPE, DWH_NUM_NODES, DWH_DB, DWH_CLUSTER_IDENTIFIER, DWH_DB_USER, DWH_DB_PASSWORD)
 
-    myClusterProps, _, _ = get_cluster_props(redshift, DWH_CLUSTER_IDENTIFIER)
+    myClusterProps, redshiftEndpoint, _ = get_cluster_props(redshift, DWH_CLUSTER_IDENTIFIER)
+
+    print("Cluster Endpoint is:", redshiftEndpoint)
+
+    # Setting new redshift endpoint
+    config.set("DB","HOST", redshiftEndpoint)
+    config.set("IAM_ROLE", "ARN", roleArn)
+
+    # dynamically update config file
+    with open('dwh.cfg', 'w') as configfile:
+        config.write(configfile)
 
     open_ports(ec2, myClusterProps, DWH_PORT, MY_CIDR_IP_RANGE)
 
@@ -173,6 +211,8 @@ def main():
     print('Connected')
 
     conn.close()
+
+    delete_cluster(redshift, iam, DWH_CLUSTER_IDENTIFIER, DWH_IAM_ROLE_NAME)
 
 
 if __name__ == "__main__":
