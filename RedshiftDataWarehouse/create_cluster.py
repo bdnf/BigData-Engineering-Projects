@@ -212,7 +212,8 @@ def main():
 
     conn.close()
 
-    delete_cluster(redshift, iam, DWH_CLUSTER_IDENTIFIER, DWH_IAM_ROLE_NAME)
+    # !!Uncomment next line after you finished to delete the cluster
+    #delete_cluster(redshift, iam, DWH_CLUSTER_IDENTIFIER, DWH_IAM_ROLE_NAME)
 
 
 if __name__ == "__main__":
