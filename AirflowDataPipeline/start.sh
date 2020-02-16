@@ -1,6 +1,7 @@
 #!/bin/sh
 
 DAG=dags
+PLUGINS=plugins
 case $1 in
   lesson1)
   echo "Starting lesson 1"
@@ -9,6 +10,11 @@ case $1 in
   lesson2)
   echo "Starting lesson 2"
   DAG=dags-data-quality
+  ;;
+  lesson3)
+  echo "Starting lesson 3: Custom Operators"
+  DAG=operators-and-sub-dags/dags
+  PLUGINS=operators-and-sub-dags/plugins
   ;;
   project)
   echo "Building Airflow DAG final broject"
@@ -31,7 +37,7 @@ docker stop airflow && docker rm airflow
 
 echo "Starting Airflow container"
 
-docker run -d --name airflow -p 8080:8080 -v ${PWD}/${DAG}:/usr/local/airflow/dags -v ${PWD}/plugins:/usr/local/airflow/plugins puckel/docker-airflow webserver
+docker run -d --name airflow -p 8080:8080 -v ${PWD}/${DAG}:/usr/local/airflow/dags -v ${PWD}/${PLUGINS}:/usr/local/airflow/plugins puckel/docker-airflow webserver
 
 
 echo "Now open localhost:8080 in you browser to access Airflow Web UI"
