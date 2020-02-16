@@ -7,7 +7,7 @@ that is stored in multiple S3 buckets.
 ## Data description
 
 Raw data (Song and Log Datasets) are stored in S3, partitioned into small JSON files, and our goal is to load it into Redshift cluster.
-Additionally, schema for reading Log Dataset can be found here [schema](/data/log_json_path.json) and it is used
+Additionally, schema for reading Log Dataset can be found here [schema](/RedshiftDataWarehouse/data/log_json_path.json) and it is used
 during COPY command to extract and process datafiles.
 
 Example COPY command to read multiple JSON files in parallel, is shown below:
@@ -97,3 +97,14 @@ Example, assuming cluster has been running in `us-west-2` region:
 aws redshift describe-clusters --region us-west-2
 aws redshift delete-cluster --region us-west-2 --cluster-identifier ${cluster_name} --skip-final-cluster-snapshot
 ```
+
+
+# Query Performance
+
+On the graph below you can check the baseline performance of creating Star Schema in Redshift:
+
+![Runtime](/RedshiftDataWarehouse/assets/query_runtime.png)
+
+And the graph:
+
+![RuntimeGraph](/RedshiftDataWarehouse/assets/query_performance.png)
