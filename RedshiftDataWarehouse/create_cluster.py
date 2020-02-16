@@ -90,21 +90,23 @@ def get_cluster_props(redshift, DWH_CLUSTER_IDENTIFIER):
 
     roleArn = ""
     endpoint = myClusterProps.get('Endpoint', None)
-    if endpoint is not None:
-         endpoint = endpoint.get('Address', None)
-    else:
+
+    seconds = 10
+    while (endpoint is None):
+        if WAITING_TIME >= MAX_WAITING_TIME:
+            break
+
         # cluster is not ready yet, let's wait a bit
-        seconds = 10
         time.sleep(seconds)
-        WAITING_TIME += 10
+        WAITING_TIME += 15
         print("Cluster is not yet ready, let check again if endpoint is accessible (Time passed: %s seconds) " % WAITING_TIME)
-        if WAITING_TIME < MAX_WAITING_TIME:
-            get_cluster_props(redshift, DWH_CLUSTER_IDENTIFIER)
-        else:
-            roleArn = myClusterProps['IamRoles'][0]['IamRoleArn']
-            print("DWH_ENDPOINT :: ", endpoint)
-            print("DWH_ROLE_ARN :: ", roleArn)
-        endpoint = endpoint.get('Address', None)
+
+        get_cluster_props(redshift, DWH_CLUSTER_IDENTIFIER)
+
+    endpoint = endpoint.get('Address', None)
+    roleArn = myClusterProps['IamRoles'][0]['IamRoleArn']
+    print("DWH_ENDPOINT :: ", endpoint)
+    print("DWH_ROLE_ARN :: ", roleArn)
 
     return myClusterProps, endpoint, roleArn
 

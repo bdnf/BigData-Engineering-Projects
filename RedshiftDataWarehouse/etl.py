@@ -4,7 +4,7 @@ from sql_queries import copy_table_queries, insert_table_queries, all_tables_cou
 
 
 def load_staging_tables(cur, conn):
-     """
+    """
     Load data from S3 into staging tables (staging_events, staging_songs)
     """
     for query in copy_table_queries:
@@ -41,10 +41,10 @@ def main():
     cur = conn.cursor()
 
     print("Issuing copy commands (it may take up to 15 minutes time to load the data from s3). Please wait ...")
-    #load_staging_tables(cur, conn)
+    load_staging_tables(cur, conn)
 
     print("Inserting tables")
-    #insert_tables(cur, conn)
+    insert_tables(cur, conn)
 
     print("Checking number of rows in tables")
     count_rows(cur, conn)

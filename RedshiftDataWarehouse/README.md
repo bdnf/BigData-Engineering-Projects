@@ -1,7 +1,7 @@
 ## Creating Data Warehouse in Redshift
 
-This repository shows how to create Data Warehouse in Redshift based on large amount of data
-that is stored on multiple S3 buckets.
+This repository shows how to create an ETL pipeline for a star schema on Redshift, based on large amount of data
+that is stored in multiple S3 buckets.
 
 
 ## Data description
