@@ -1,7 +1,7 @@
 class SqlQueries:
     # CREATE TABLES
-    create_staging_events = ("""
-        CREATE TABLE public.staging_events (
+    create_staging_events = """
+        CREATE TABLE IF NOT EXISTS public.staging_events (
         	artist varchar(256),
         	auth varchar(256),
         	firstname varchar(256),
@@ -21,10 +21,10 @@ class SqlQueries:
         	useragent varchar(256),
         	userid int4
         );
-    """)
+    """
 
-    create_staging_songs = ("""
-        CREATE TABLE public.staging_songs (
+    create_staging_songs = """
+        CREATE TABLE IF NOT EXISTS public.staging_songs (
         	num_songs int4,
         	artist_id varchar(256),
         	artist_name varchar(256),
@@ -36,9 +36,10 @@ class SqlQueries:
         	duration numeric(18,0),
         	"year" int4
         );
-    """)
-    create_table_users = ("""
-        CREATE TABLE public.users (
+    """
+
+    create_table_users = """
+        CREATE TABLE IF NOT EXISTS public.users (
             userid int4 NOT NULL,
             first_name varchar(256),
             last_name varchar(256),
@@ -46,10 +47,10 @@ class SqlQueries:
             "level" varchar(256),
             CONSTRAINT users_pkey PRIMARY KEY (userid)
         );
-    """)
+    """
 
-    create_table_time = ("""
-        CREATE TABLE public."time" (
+    create_table_time = """
+        CREATE TABLE IF NOT EXISTS public."time" (
         	start_time timestamp NOT NULL,
         	"hour" int4,
         	"day" int4,
@@ -59,11 +60,11 @@ class SqlQueries:
         	weekday varchar(256),
         	CONSTRAINT time_pkey PRIMARY KEY (start_time)
         ) ;
-    """)
+    """
 
 
-    create_table_songs = ("""
-        CREATE TABLE public.songs (
+    create_table_songs = """
+        CREATE TABLE IF NOT EXISTS public.songs (
         	songid varchar(256) NOT NULL,
         	title varchar(256),
         	artistid varchar(256),
@@ -71,21 +72,21 @@ class SqlQueries:
         	duration numeric(18,0),
         	CONSTRAINT songs_pkey PRIMARY KEY (songid)
         );
-    """)
+    """
 
-    create_table_artists= ("""
-        CREATE TABLE public.artists (
+    create_table_artists = """
+        CREATE TABLE IF NOT EXISTS public.artists (
         	artistid varchar(256) NOT NULL,
         	name varchar(256),
         	location varchar(256),
         	lattitude numeric(18,0),
         	longitude numeric(18,0)
         );
-    """)
+    """
 
-    create_table_songplays = ("""
+    create_table_songplays = """
 
-        CREATE TABLE public.songplays (
+        CREATE TABLE IF NOT EXISTS public.songplays (
         	playid varchar(32) NOT NULL,
         	start_time timestamp NOT NULL,
         	userid int4 NOT NULL,
@@ -97,10 +98,10 @@ class SqlQueries:
         	user_agent varchar(256),
         	CONSTRAINT songplays_pkey PRIMARY KEY (playid)
         );
-    """)
+    """
 
 
-    # INSERT    
+    # INSERT
     songplay_table_insert = ("""
         SELECT
                 md5(events.sessionid || events.start_time) songplay_id,

@@ -6,10 +6,12 @@ case $1 in
   lesson1)
   echo "Starting lesson 1"
   DAG=dags-basic-pipelines
+  PLUGINS=plugins
   ;;
   lesson2)
   echo "Starting lesson 2"
   DAG=dags-data-quality
+  PLUGINS=plugins
   ;;
   lesson3)
   echo "Starting lesson 3: Custom Operators"
@@ -18,6 +20,8 @@ case $1 in
   ;;
   project)
   echo "Building Airflow DAG final broject"
+  DAG=dags
+  PLUGINS=plugins
   ;;
   stop)
   echo "Stopping the container"
