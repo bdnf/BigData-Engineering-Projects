@@ -9,7 +9,7 @@ import configparser
 
 # time to wait to extract endpoint from the Redshift cluster after creation
 WAITING_TIME = 0
-MAX_WAITING_TIME = 300 # 5 minutes
+MAX_WAITING_TIME = 180 # 3 minutes
 
 def create_iam_role(iam, DWH_IAM_ROLE_NAME):
     '''
@@ -78,7 +78,13 @@ def get_cluster_props(redshift, DWH_CLUSTER_IDENTIFIER):
 
     def prettyRedshiftProps(props):
         print("Props are: ", props )
-        pd.set_option('display.max_colwidth', None)
+        # older pandas version may raise an error
+        try:
+            pd.set_option('display.max_colwidth', None)
+        except ValueError as e:
+            print("And error during creating Pandas df occured. Fixing the issue")
+            pd.set_option('display.max_colwidth', -1)
+
         keysToShow = ["ClusterIdentifier", "NodeType", "ClusterStatus", "MasterUsername", "DBName", "Endpoint", "NumberOfNodes", 'VpcId']
         x = [(k, v) for k,v in props.items() if k in keysToShow]
         return pd.DataFrame(data=x, columns=["Key", "Value"])
@@ -100,8 +106,10 @@ def get_cluster_props(redshift, DWH_CLUSTER_IDENTIFIER):
         time.sleep(seconds)
         WAITING_TIME += 15
         print("Cluster is not yet ready, let check again if endpoint is accessible (Time passed: %s seconds) " % WAITING_TIME)
-
-        get_cluster_props(redshift, DWH_CLUSTER_IDENTIFIER)
+        if endpoint is not None:
+            break
+        else:
+            myClusterProps, endpoint, roleArn = get_cluster_props(redshift, DWH_CLUSTER_IDENTIFIER)
 
     endpoint = endpoint.get('Address', None)
     roleArn = myClusterProps['IamRoles'][0]['IamRoleArn']
