@@ -1,18 +1,65 @@
-# ETL Pipeline and Postgres Data Modelling
+# Large scale Data Engineering projects
 
-Current project shows steps for analyzing the data for a hypothetical startup collecting songs and user activity from the new music streaming app they have created. 
+Current project shows steps for analyzing the data for a hypothetical startup collecting songs and user activity from the new music streaming app they have created.
 
-Given this hypothetical startup, their analytics team is particularly interested in understanding what songs users are listening to. 
+Given this hypothetical startup, their analytics team is particularly interested in understanding what songs users are listening to.
 Currently, they don't have an easy way to query their data, which resides in a directory of JSON logs on user activity on the app, as well as a directory with JSON metadata on the songs in their app.
 
-The repository shows creation of a database schema and ETL pipeline for this analysis.
-Database and ETL pipeline can be tested by running queries given in the `test.ipynb` file and results can be compared to the obtained results.
+# Technologies:
+<br>Python as main programming language
+<br>AWS Redshift
+<br>AWS S3
+<br>Apache Airflow
+<br>Apache Cassandra
+<br>PostreSQL
+<br>Spark and Spark on EMR cluster
+<br>Docker
 
-# Song Dataset
-The first dataset is a subset of real data from the Million Song Dataset.
-Each file is in JSON format and contains metadata about a song and the artist of that song.
-The files are partitioned by the first three letters of each song's track ID.
-For example, here are filepaths to two files in this dataset.
+
+
+Each project uses the same dataset and provides end-to-end use-cases on how the data can be managed and scaled based on requirements.
+<br>Data scale is gradually increases from first project to the last.
+<br>Use navigation, or provided links, to learn more about each project. Corresponding README files included.
+<br>The repository contains the following projects:
+
+# [Data Modeling with PostgreSQL](./PostgresDataModeling)
+
+Developed a relational database using PostgreSQL to model user activity data for a music streaming app.
+
+Developed a Star Schema, Fact and Dimension tables for storing and retrieving the data.
+Built out an ETL pipeline to optimize queries in order to understand what songs users listen to.
+
+# [Data modeling with Apache Cassandra](./CassandraDataModeling)
+
+Designed a NoSQL database using Apache Cassandra based on the original schema outlined in project above.
+
+# [Implementing Data Warehouse on AWS with Redshift](./RedshiftDataWarehouse)
+
+Develop an ETL Pipeline that copies data from S3 buckets into staging tables, processed into a optimized Star Schema and loaded to Redshift cluster for storage and further large-scale analytics.
+
+
+# [Implementing Data Lake on AWS with EMR and S3](./DataLakeWithSpark)
+
+Project extends previous one and shows how to scale the current ETL pipeline by moving the data into Data Lake.
+Further data can be used by Redshift directly or using AWS Glue/Athena for running ad-hoc queries.
+
+Scalable ETL Pipeline is implemented on a Spark EMR cluster.
+Processed data is partitioned and saved in S3 in Parquet format.
+
+# [Automating Data Pipelines with Apache Airflow and Redshift](./AirflowDataPipeline)
+
+Project describes how to automate ETL pipelines using Airflow.
+Custom operators examples on how to perform tasks such as staging data, processing and loading into AWS Redshift, and validation through data quality checks were provided.
+
+
+# Datasets
+
+## Songs dataset (generated)
+
+Song Dataset contains over one million of JSON files.
+<br>Each file is in JSON format and contains metadata about a song and the artist of that song.
+<br>The files are partitioned by the first three letters of each song's track ID.
+<br>For example, here are filepaths to two files in this dataset.
 ```
 song_data/A/B/C/TRABCEI128F424C983.json
 song_data/A/A/B/TRAABJL12903CDCF1A.json
@@ -21,12 +68,12 @@ song_data/A/A/B/TRAABJL12903CDCF1A.json
 And below is an example of what a single song file, TRAABJL12903CDCF1A.json, looks like.
 ```
 {
-    "num_songs": 1, 
+    "num_songs": 1,
     "artist_id": "ARJIE2Y1187B994AB7",
     "artist_latitude": null,
     "artist_longitude": null,
     "artist_location": "",
-    "artist_name": "Line Renaud", 
+    "artist_name": "Line Renaud",
     "song_id": "ABCPIRU12A6D4FA1E1",
     "title": "Der Kleine Dompfaff",
     "duration": 152.92036,
@@ -43,78 +90,3 @@ The log files in the dataset you'll be working with are partitioned by year and 
 log_data/2018/11/2018-11-12-events.json
 log_data/2018/11/2018-11-13-events.json
 ```
-
-# Schema for Song Play Analysis
-Using the song and log datasets, you'll need to create a star schema optimized for queries on song play analysis. This includes the following tables.
-
-# Star Database Schema
-## Fact Tables
-**songplays** - records in log data associated with song plays i.e. records with page NextSong
-- songplay_id (INT) PRIMARY KEY: ID of each user song play 
-- start_time (DATE) NOT NULL: Timestamp of beggining of user activity
-- user_id (INT) NOT NULL: ID of user
-- level (TEXT): User level {free | paid}
-- song_id (TEXT) NOT NULL: ID of Song played
-- artist_id (TEXT) NOT NULL: ID of Artist of the song played
-- session_id (INT): ID of the user Session 
-- location (TEXT): User location 
-- user_agent (TEXT): Agent used by user to access the platform
-
-## Dimension Tables
-**users** - users in the app
-- user_id (INT) PRIMARY KEY: ID of user
-- first_name (TEXT) NOT NULL: Name of user
-- last_name (TEXT) NOT NULL: Last Name of user
-- gender (TEXT): Gender of user {M | F}
-- level (TEXT): User level {free | paid}
-
-**songs** - songs in music database
-- song_id (TEXT) PRIMARY KEY: ID of Song
-- title (TEXT) NOT NULL: Title of Song
-- artist_id (TEXT) NOT NULL: ID of song Artist
-- year (INT): Year of song release
-- duration (FLOAT) NOT NULL: Song duration in milliseconds
-
-**artists** - artists in music database
-- artist_id (TEXT) PRIMARY KEY: ID of Artist
-- name (TEXT) NOT NULL: Name of Artist
-- location (TEXT): Name of Artist city
-- lattitude (FLOAT): Lattitude location of artist
-- longitude (FLOAT): Longitude location of artist
-
-**time** - timestamps of records in songplays broken down into specific units
-- start_time (DATE) PRIMARY KEY: Timestamp of row
-- hour (INT): Hour associated to start_time
-- day (INT): Day associated to start_time
-- week (INT): Week of year associated to start_time
-- month (INT): Month associated to start_time 
-- year (INT): Year associated to start_time
-- weekday (TEXT): Name of week day associated to start_time
-
-# ETL Pipeline
-
-`etl.py` shows pipeline used to collect data from multiple JSON files and log files.
-First all JSON files are read into Pandas dataframe, fields of interest are selected, based on Database Schema definition,
-and inserted into corresponding database.
-Next, all log files are being extracted and pre-processed (data is filtered by 'NextSong' value and timestamp values and converted in format that matches predefined corresponding database schema).
-Next, used data is collected and loaded into `users` database.
-Finally, user data is combined with song and artist data and put into the main Fact Table.
-
-An example query can be used to select song and artist data from the tables:
-```
-SELECT song_id, artists.artist_id
-        FROM songs JOIN artists ON songs.artist_id = artists.artist_id
-        WHERE songs.title = %s
-        AND artists.name = %s
-        AND songs.duration = %s
-```
-
-## Project structure
-
-Files used on the project:
-1. **data** data folder with separate JSON and log files that need to processed.
-2. **sql_queries.py** contains all sql queries, and is used by `create_tables.py` script.
-3. **create_tables.py** drops and creates tables. This resets all tables before each time ETL scripts are being run.
-4. **test.ipynb** displays the first few rows of each table.
-5. **etl.ipynb** reads and processes a single file from song_data and log_data and loads the data into predefined tables. 
-6. **etl.py** actual ETL script that reads and processes files from song_data and log_data and loads them into corresponding tables. 
